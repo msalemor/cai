@@ -34,14 +34,15 @@ func evaluate(file, systemPrompt, sourceCode string) *Evaluation {
 	}
 }
 
-func Process(sourceFolder, evaluationName, skipList string) {
-	files, err := ListSourceFiles(sourceFolder, skipList)
+func Process(sourceFolder, evaluationName, skipList, overrideList string) {
+	files, err := ListSourceFiles(sourceFolder, skipList, overrideList)
 	if err != nil {
 		panic("Failed to list source files: " + err.Error())
 	}
 
 	if len(files) == 0 {
-		panic("No source files found in the specified folder")
+		println("No source files found in the specified folder")
+		return
 	}
 
 	evaluationPrompt := GetEvaluationPrompt(evaluationName)

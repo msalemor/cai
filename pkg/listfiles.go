@@ -7,8 +7,16 @@ import (
 )
 
 // ListSourceFiles returns a list of all source code files in the given directory and its subdirectories.
-func ListSourceFiles(rootDir, skipList string) ([]string, error) {
+func ListSourceFiles(rootDir, skipList, overrideList string) ([]string, error) {
 	var files []string
+	skipList = strings.ToLower(skipList)
+	if skipList != "" {
+		println("Skip list provided:", skipList)
+	}
+	overrideList = strings.ToLower(overrideList)
+	if overrideList != "" {
+		println("Override list provided:", overrideList)
+	}
 
 	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -22,11 +30,20 @@ func ListSourceFiles(rootDir, skipList string) ([]string, error) {
 
 		// Check if it's a source file by extension
 		ext := filepath.Ext(path)
-		switch ext {
-		case ".go", ".js", ".ts", ".tsx", ".jsx", ".py", ".java", ".c", ".cpp", ".h", ".hpp", ".cs", ".php", ".rb", ".rs", ".swift", ".kt", ".scala", ".ps1", ".sh":
-			if skipList != "" && !strings.Contains(ext, skipList) {
-				files = append(files, path)
-			} else {
+
+		if overrideList == "" {
+			switch ext {
+			case ".go", ".js", ".ts", ".tsx", ".jsx", ".py", ".java", ".c", ".cpp", ".h", ".hpp", ".cs", ".php", ".rb", ".rs", ".swift", ".kt", ".scala", ".ps1", ".sh":
+				if skipList != "" && !strings.Contains(skipList, ext) {
+					files = append(files, path)
+					println("Adding file to list:", path)
+				} else if skipList == "" {
+					files = append(files, path)
+				}
+			}
+		} else {
+			if ext != "" && strings.Contains(overrideList, ext) {
+				println("Adding file to list:", path)
 				files = append(files, path)
 			}
 		}

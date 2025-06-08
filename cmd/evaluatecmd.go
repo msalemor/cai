@@ -9,6 +9,7 @@ var (
 	sourceFolder   string
 	evaluationName string
 	skipList       string
+	overrideList   string
 	pparallel      bool
 
 	evaluateCmd = &cobra.Command{
@@ -23,9 +24,9 @@ var (
 				return
 			}
 			if pparallel {
-				pkg.PProcess(sourceFolder, evaluationName, skipList)
+				pkg.PProcess(sourceFolder, evaluationName, skipList, overrideList)
 			} else {
-				pkg.Process(sourceFolder, evaluationName, skipList)
+				pkg.Process(sourceFolder, evaluationName, skipList, overrideList)
 			}
 		},
 	}
@@ -36,6 +37,8 @@ func init() {
 	evaluateCmd.Flags().StringVarP(&sourceFolder, "source", "s", ".", "Source folder containing the data to evaluate")
 	evaluateCmd.Flags().StringVarP(&evaluationName, "evaluation", "e", "complexity", "Name of the evaluation to run")
 	evaluateCmd.Flags().StringVarP(&skipList, "skip", "k", "", "Skip files matching the provided pattern (e.g. [.go,.py])")
+	evaluateCmd.Flags().StringVarP(&overrideList, "override", "o", "", "Override files matching the provided pattern (e.g. [.go,.py])")
+
 	evaluateCmd.Flags().BoolVarP(&pparallel, "parallel", "p", false, "Run evaluations in parallel")
 
 	// If this is meant to be a subcommand of a root command, you would add:
