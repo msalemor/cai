@@ -11,6 +11,7 @@ var (
 	skipList       string
 	overrideList   string
 	pparallel      bool
+	junitFileName  string
 
 	evaluateCmd = &cobra.Command{
 		Use:     "evaluate",
@@ -26,7 +27,7 @@ var (
 			if pparallel {
 				pkg.PProcess(sourceFolder, evaluationName, skipList, overrideList)
 			} else {
-				pkg.Process(sourceFolder, evaluationName, skipList, overrideList)
+				pkg.Process(sourceFolder, evaluationName, skipList, overrideList, junitFileName)
 			}
 		},
 	}
@@ -38,6 +39,7 @@ func init() {
 	evaluateCmd.Flags().StringVarP(&evaluationName, "evaluation", "e", "complexity", "Name of the evaluation to run")
 	evaluateCmd.Flags().StringVarP(&skipList, "skip", "k", "", "Skip files matching the provided pattern (e.g. [.go,.py])")
 	evaluateCmd.Flags().StringVarP(&overrideList, "override", "o", "", "Override files matching the provided pattern (e.g. [.go,.py])")
+	evaluateCmd.Flags().StringVarP(&junitFileName, "junit", "j", "junit.xml", "Name of the JUNIT file to create")
 
 	evaluateCmd.Flags().BoolVarP(&pparallel, "parallel", "p", false, "Run evaluations in parallel")
 
