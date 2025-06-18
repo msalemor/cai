@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
+	// Main entry point
 	pkg.GetSettings()         // Initialize settings from JSON file
 	pkg.EvaluationsInstance() // Load evaluation prompts from JSON file
 	cmd.Execute()
