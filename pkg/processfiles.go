@@ -111,7 +111,7 @@ func Process(sourceFolder, evaluationName, skipList, overrideList, junitFileName
 
 	err = CreateJUnitFile(evaluations, evaluationName, junitFileName, totalElapsedTime)
 	if err != nil {
-		logrus.Error(fmt.Sprintf("Failed to create JUNIT file: %v\n", err))
+		logrus.Warn(fmt.Sprintf("Failed to create JUNIT file: %v\n", err))
 		os.Exit(1)
 	}
 
@@ -131,7 +131,7 @@ func Process(sourceFolder, evaluationName, skipList, overrideList, junitFileName
 	}
 
 	if failure {
-		logrus.Error("Failure: one or more files scored below the evaluation threshold: ", evaluationPrompt.Description)
+		logrus.Warn("Failure: one or more files scored below the evaluation threshold: ", evaluationPrompt.Description)
 		os.Exit(1)
 	}
 }
