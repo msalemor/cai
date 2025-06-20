@@ -21,9 +21,9 @@ jobs:
       run: |
         mkdir cai
         cd cai
-        wget https://github.com/msalemor/cai/raw/refs/heads/main/release/cai-0.1.0.zip
-        unzip cai-0.1.0.zip
-        rm cai-0.1.0.zip
+        wget https://github.com/msalemor/cai/releases/download/v0.1.0/cai-linux-amd64-v0.1.0.zip
+        unzip cai-linux-amd64-v0.1.0.zip
+        rm cai-linux-amd64-v0.1.0.zip
         ./cai eval -s .. -j ../junit.xml -k .py
         
     - name: Set up Go
