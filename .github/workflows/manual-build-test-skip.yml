@@ -1,4 +1,4 @@
-name: Manual build and test
+name: Manual build and test skipping
 
 on:
   workflow_dispatch:
