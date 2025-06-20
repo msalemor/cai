@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/sirupsen/logrus"
 )
 
 type Evaluation struct {
@@ -62,7 +63,7 @@ func CreateJUnitFile(evaluations []Evaluation, evaluationName, junitFileName str
 	}
 	file.WriteString("</testsuites>\n")
 
-	fmt.Printf("JUNIT file created: %s\n", junitFileName)
+	logrus.Info(fmt.Sprintf("JUNIT file created: %s\n", junitFileName))
 	return nil
 }
 
@@ -82,12 +83,14 @@ func Process(sourceFolder, evaluationName, skipList, overrideList, junitFileName
 		panic(fmt.Sprintf("Evaluation prompt '%s' not found", evaluationName))
 	}
 
+	logrus.Info("Starting code evaluations")
 	var evaluations []Evaluation
 	for _, file := range files {
 		// Process each file as needed
 		// For example, you could read the file, analyze its content, etc.
 		// Here we just print the file name for demonstration purposes
-		println("Processing file:", file)
+
+		logrus.Info("Processing file: ", file)
 
 		sourceCode, err := os.ReadFile(file)
 		if err != nil {
@@ -100,17 +103,20 @@ func Process(sourceFolder, evaluationName, skipList, overrideList, junitFileName
 	}
 
 	// Create JUNIT file
+	logrus.Info("Creating JUNIT file")
 	totalElapsedTime := 0.0
 	for _, eval := range evaluations {
 		totalElapsedTime += eval.Elapsed
 	}
+
 	err = CreateJUnitFile(evaluations, evaluationName, junitFileName, totalElapsedTime)
 	if err != nil {
-		fmt.Printf("Failed to create JUNIT file: %v\n", err)
+		logrus.Error(fmt.Sprintf("Failed to create JUNIT file: %v\n", err))
 		os.Exit(1)
 	}
 
 	// Print evaluation results
+	logrus.Info("Printing the evaluation results")
 
 	failure := false
 	for _, eval := range evaluations {
@@ -125,7 +131,7 @@ func Process(sourceFolder, evaluationName, skipList, overrideList, junitFileName
 	}
 
 	if failure {
-		fmt.Printf("\n\n%s\nFailure: one or more files scored below the evaluation threshold\n", evaluationPrompt.Description)
+		logrus.Error(fmt.Sprintf("Failure: one or more files scored below the evaluation threshold: %s", evaluationPrompt.Description))
 		os.Exit(1)
 	}
 }
