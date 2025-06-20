@@ -9,6 +9,11 @@ jobs:
   build:
     name: Test
     runs-on: ubuntu-latest
+    env:
+      CAI_ENDPOINT: ${{ secrets.CAI_ENDPOINT }}
+      CAI_KEY: ${{ secrets.CAI_KEY }}
+      CAI_MODEL: gpt-4o
+      CAI_TYPE: azure
     steps:
     - uses: actions/checkout@v4.2.2
 
