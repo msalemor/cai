@@ -14,9 +14,9 @@ jobs:
 
     - name: Download and extract zip file
       run: |
-        wget -O cai-0.0.1.zip https://github.com/msalemor/cai/releases/download/v0.0.1/cai-0.0.1.zip
-        unzip -o cai-0.0.1.zip
-        rm cai-0.0.1.zip
+        wget https://github.com/msalemor/cai/raw/refs/heads/main/release/cai-0.1.0.zip
+        unzip cai-0.1.0.zip
+        rm cai-0.1.0.zip
         
     - name: Set up Go
       uses: actions/setup-go@v5
