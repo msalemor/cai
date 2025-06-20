@@ -12,14 +12,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4.2.2
 
-    - name: Download tar file
+    - name: Download and extract zip file
       run: |
-        wget https://github.com/msalemor/cai/blob/main/release/cai-0.0.1.zip
-
-    - name: Extract tar file
-      run: |
-        unzip -xzf cai-0.0.1.zip
-
+        wget -O cai-0.0.1.zip https://github.com/msalemor/cai/releases/download/v0.0.1/cai-0.0.1.zip
+        unzip -o cai-0.0.1.zip
+        rm cai-0.0.1.zip
+        
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
