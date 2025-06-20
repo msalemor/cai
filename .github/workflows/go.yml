@@ -17,7 +17,8 @@ jobs:
         wget https://github.com/msalemor/cai/blob/main/release/cai-0.0.1.zip
 
     - name: Extract tar file
-      run: unzip -xzf cai-0.1.0.tar.gz
+      run: |
+        unzip -xzf cai-0.0.1.zip
 
     - name: Set up Go
       uses: actions/setup-go@v5
