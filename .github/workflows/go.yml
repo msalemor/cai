@@ -19,6 +19,7 @@ jobs:
         wget https://github.com/msalemor/cai/raw/refs/heads/main/release/cai-0.1.0.zip
         unzip cai-0.1.0.zip
         rm cai-0.1.0.zip
+        ./cai eval -s ..
         
     - name: Set up Go
       uses: actions/setup-go@v5
