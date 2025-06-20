@@ -41,14 +41,12 @@ jobs:
       #     release_name: Release ${{ github.ref_name }}
       #     draft: false
       #     prerelease: false
-      #   id: create_release
-      
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
+      #   id: create_release      
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            cai-linux-amd64-${{ github.ref_name }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./cai-linux-amd64-${{ github.ref_name }}.zip
-          asset_name: cai-linux-amd64-${{ github.ref_name }}.zip
-          asset_content_type: application/zip
