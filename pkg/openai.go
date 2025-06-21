@@ -28,7 +28,7 @@ func ChatCompletion(systemPrompt, code string) (*Evaluation, error) {
 
 	request := OpenAIRequest{
 		Messages:       messages,
-		Model:          GetSettings().Model,
+		Model:          LoadOpenAISettings().Model,
 		ResponseFormat: FormatType{Type: "json_object"}, // this is important
 		Temperature:    0.1,
 	}
@@ -38,18 +38,18 @@ func ChatCompletion(systemPrompt, code string) (*Evaluation, error) {
 		return nil, fmt.Errorf("error marshaling request: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, GetSettings().Endpoint, bytes.NewBuffer(requestBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, LoadOpenAISettings().Endpoint, bytes.NewBuffer(requestBody))
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
 	// Support for Azure OpenAI or OpenAI API
 	req.Header.Set("Content-Type", "application/json")
-	if GetSettings().Type == "azure" {
-		req.Header.Set("api-key", GetSettings().APIKey)
+	if LoadOpenAISettings().Type == "azure" {
+		req.Header.Set("api-key", LoadOpenAISettings().APIKey)
 	} else {
 		// NOTE: this worked for Azure OpenAI as well
-		req.Header.Set("Authorization", "Bearer "+GetSettings().APIKey)
+		req.Header.Set("Authorization", "Bearer "+LoadOpenAISettings().APIKey)
 	}
 
 	client := &http.Client{}

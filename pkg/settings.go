@@ -20,7 +20,7 @@ var (
 	once             sync.Once
 )
 
-func GetSettings() *Settings {
+func LoadOpenAISettings() *Settings {
 	once.Do(func() {
 		godotenv.Load()
 		settingsInstance = &Settings{}

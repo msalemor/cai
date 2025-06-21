@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-// ListSourceFiles returns a list of all source code files in the given directory and its subdirectories.
-func ListSourceFiles(rootDir, skipList, overrideList string) ([]string, error) {
+// BuildSourceFileList returns a list of all source code files in the given directory and its subdirectories.
+func BuildSourceFileList(rootDir, skipList, overrideList string) ([]string, error) {
 	var files []string
 	skipList = strings.ToLower(skipList)
 	if skipList != "" {

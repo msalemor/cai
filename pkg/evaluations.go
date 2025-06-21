@@ -18,7 +18,7 @@ var (
 	promptsOnce       sync.Once
 )
 
-func EvaluationsInstance() []EvaluationPrompt {
+func LoadEvaluations() []EvaluationPrompt {
 	promptsOnce.Do(func() {
 		jsonData, err := os.ReadFile("./evaluations.json")
 		if err != nil {

@@ -30,7 +30,7 @@ func pevaluate(file, systemPrompt, sourceCode string) *Evaluation {
 }
 
 func PProcess(sourceFolder, evaluationName, skipList, overrideList string) {
-	files, err := ListSourceFiles(sourceFolder, skipList, overrideList)
+	files, err := BuildSourceFileList(sourceFolder, skipList, overrideList)
 	if err != nil {
 		panic("Failed to list source files: " + err.Error())
 	}

@@ -68,58 +68,56 @@ func CreateJUnitFile(evaluations []Evaluation, evaluationName, junitFileName str
 }
 
 func Process(sourceFolder, evaluationName, skipList, overrideList, junitFileName string) {
-	files, err := ListSourceFiles(sourceFolder, skipList, overrideList)
+	logrus.Info("Scanning source files in folder: ", sourceFolder)
+	sourceFiles, err := BuildSourceFileList(sourceFolder, skipList, overrideList)
 	if err != nil {
-		panic("Failed to list source files: " + err.Error())
+		logrus.Warn("Failed to list source files: ", err.Error())
+		os.Exit(1)
 	}
 
-	if len(files) == 0 {
+	if len(sourceFiles) == 0 {
 		println("No source files found in the specified folder")
 		return
 	}
 
+	logrus.Infof("Getting evaluation prompt for: %s", evaluationName)
 	evaluationPrompt := GetEvaluationPrompt(evaluationName)
 	if evaluationPrompt == nil {
 		panic(fmt.Sprintf("Evaluation prompt '%s' not found", evaluationName))
 	}
 
-	logrus.Info("Starting code evaluations")
-	var evaluations []Evaluation
-	for _, file := range files {
+	logrus.Info("Perform evaluations")
+	var evaluationResults []Evaluation
+	for _, file := range sourceFiles {
 		// Process each file as needed
 		// For example, you could read the file, analyze its content, etc.
 		// Here we just print the file name for demonstration purposes
-
 		logrus.Info("Processing file: ", file)
-
 		sourceCode, err := os.ReadFile(file)
 		if err != nil {
 			panic(fmt.Sprintf("Failed to read file %s: %v\n", file, err))
 		}
-		//fmt.Printf("Read %d bytes from %s\n", len(sourceCode), file)
-
 		evaluation := evaluate(file, evaluationPrompt.SystemPrompt, string(sourceCode))
-		evaluations = append(evaluations, *evaluation)
+		evaluationResults = append(evaluationResults, *evaluation)
 	}
 
 	// Create JUNIT file
-	logrus.Info("Creating JUNIT file")
+	logrus.Info("Creating JUNIT file with the results")
 	totalElapsedTime := 0.0
-	for _, eval := range evaluations {
+	for _, eval := range evaluationResults {
 		totalElapsedTime += eval.Elapsed
 	}
 
-	err = CreateJUnitFile(evaluations, evaluationName, junitFileName, totalElapsedTime)
+	err = CreateJUnitFile(evaluationResults, evaluationName, junitFileName, totalElapsedTime)
 	if err != nil {
 		logrus.Warn(fmt.Sprintf("Failed to create JUNIT file: %v\n", err))
 		os.Exit(1)
 	}
 
-	// Print evaluation results
+	// Prints the evaluation results
 	logrus.Info("Printing the evaluation results")
-
 	failure := false
-	for _, eval := range evaluations {
+	for _, eval := range evaluationResults {
 		if eval.Score < 5.0 {
 			color.Red("File: %s\nScore: %.2f\nReason:\n%s\n---------------------------------------------------------------------------\n", eval.File, eval.Score, eval.Explanation)
 		} else {
@@ -130,6 +128,7 @@ func Process(sourceFolder, evaluationName, skipList, overrideList, junitFileName
 		}
 	}
 
+	// If a failure occurred, print a message and exit with a error
 	if failure {
 		logrus.Warn("Failure: one or more files scored below the evaluation threshold: ", evaluationPrompt.Description)
 		os.Exit(1)

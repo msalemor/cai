@@ -16,10 +16,12 @@ func main() {
 	// Main entry point
 	logrus.Info("Starting application")
 
-	pkg.GetSettings() // Initialize settings from JSON file
+	// Initialize settings the environment variables or .env file
+	pkg.LoadOpenAISettings()
 	logrus.Info("Settings initialized")
 
-	pkg.EvaluationsInstance() // Load evaluation prompts from JSON file
+	// Load evaluation prompts from evaluations.json file
+	pkg.LoadEvaluations()
 	logrus.Info("Evaluations loaded")
 
 	cmd.Execute()
