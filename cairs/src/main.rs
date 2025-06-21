@@ -20,23 +20,46 @@ enum Commands {
     /// Evaluate with specified parameters
     Evaluate {
         /// Target folder path
-        #[arg(long)]
+        #[arg(
+            short = 't',
+            long,
+            default_value = ".",
+            help = "Path to the target folder containing source files"
+        )]
         target_folder: String,
 
         /// Evaluation name
-        #[arg(long)]
+        #[arg(
+            long,
+            default_value = "complexity",
+            short = 'n',
+            help = "Name of the evaluation to run"
+        )]
         evaluation_name: String,
 
         /// File to skip during evaluation
-        #[arg(long)]
+        #[arg(
+            long,
+            short = 'k',
+            help = "Pattern for files to skip during evaluation (e.g., 'test_*.rs')"
+        )]
         skip_files: Option<String>,
 
         /// Files to include in evaluation
-        #[arg(long)]
+        #[arg(
+            long,
+            short = 'o',
+            help = "Pattern for files to include in evaluation (e.g., '*.rs')"
+        )]
         include_files: Option<String>,
 
         /// JUnit file name for output
-        #[arg(long)]
+        #[arg(
+            long,
+            short = 'j',
+            default_value = "junit.xml",
+            help = "Name of the JUnit file to save results"
+        )]
         junit_file_name: Option<String>,
     },
 }
@@ -109,18 +132,17 @@ async fn handle_evaluate(
     junit_file_name: Option<String>,
     evaluations: &HashMap<String, evaluations::Evaluation>,
 ) {
-    // Check if the evaluation exists
-    let prompt;
-    if let Some(evaluation) = evaluations.get(&evaluation_name) {
-        prompt = evaluation.system_prompt.clone();
-    } else {
-        eprintln!("Error: Evaluation '{}' not found", evaluation_name);
-        println!("Available evaluations:");
-        for name in evaluations.keys() {
-            println!("  {}", name);
+    let evaluation = match evaluations.get(&evaluation_name) {
+        Some(eval) => eval,
+        None => {
+            eprintln!("❌ Error: Evaluation '{}' not found", evaluation_name);
+            println!("Available evaluations:");
+            for name in evaluations.keys() {
+                println!("  {}", name);
+            }
+            std::process::exit(1);
         }
-        return;
-    }
+    };
 
     println!("🔍 Starting evaluation: {}", evaluation_name);
     println!("📁 Target folder: {}", target_folder);
@@ -159,18 +181,18 @@ async fn handle_evaluate(
     }
 
     // Azure OpenAI configuration
-    let azure_endpoint = std::env::var("AZURE_OPENAI_ENDPOINT").unwrap_or_else(|_| {
-        println!("⚠️  Warning: AZURE_OPENAI_ENDPOINT environment variable not set");
-        "https://your-resource.openai.azure.com".to_string()
+    let azure_endpoint = std::env::var("CAI_ENDPOINT").unwrap_or_else(|_| {
+        println!("⚠️  Warning: CAI_ENDPOINT environment variable not set");
+        "https://<NAME>.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2025-01-01-preview".to_string()
     });
 
-    let azure_api_key = std::env::var("AZURE_OPENAI_API_KEY").unwrap_or_else(|_| {
-        println!("⚠️  Warning: AZURE_OPENAI_API_KEY environment variable not set");
+    let azure_api_key = std::env::var("CAI_KEY").unwrap_or_else(|_| {
+        println!("⚠️  Warning: CAI_KEY environment variable not set");
         "your-api-key".to_string()
     });
 
-    let deployment_name = std::env::var("AZURE_OPENAI_DEPLOYMENT_NAME").unwrap_or_else(|_| {
-        println!("⚠️  Warning: AZURE_OPENAI_DEPLOYMENT_NAME environment variable not set");
+    let deployment_name = std::env::var("CAI_MODEL").unwrap_or_else(|_| {
+        println!("⚠️  Warning: CAI_MODEL environment variable not set");
         "gpt-4".to_string()
     });
 
@@ -199,7 +221,7 @@ async fn handle_evaluate(
                 &azure_endpoint,
                 &azure_api_key,
                 &deployment_name,
-                &prompt,
+                &evaluation.system_prompt,
                 &user_message,
             )
             .await
@@ -264,7 +286,7 @@ async fn handle_evaluate(
         println!("   Average score: {:.1}/10", report.summary.average_score);
 
         // Save results to JUnit file (default to ./junit.xml if not specified)
-        let junit_file = junit_file_name.unwrap_or_else(|| "junit.xml".to_string());
+        let junit_file = junit_file_name.unwrap_or_else(|| format!("{}/junit.xml", target_folder));
         if let Err(e) = evaluations::save_junit_results(&report, &junit_file) {
             println!("❌ Failed to save JUnit results: {}", e);
         } else {
@@ -272,18 +294,20 @@ async fn handle_evaluate(
         }
 
         // Also save as JSON report
-        let json_file = format!(
-            "evaluation_report_{}.json",
-            chrono::Utc::now().format("%Y%m%d_%H%M%S")
-        );
-        if let Err(e) = evaluations::save_json_results(&report, &json_file) {
-            println!("❌ Failed to save JSON report: {}", e);
-        } else {
-            println!("💾 Detailed report saved to: {}", json_file);
-        }
+        // let json_file = format!(
+        //     "evaluation_report_{}.json",
+        //     chrono::Utc::now().format("%Y%m%d_%H%M%S")
+        // );
+        // if let Err(e) = evaluations::save_json_results(&report, &json_file) {
+        //     println!("❌ Failed to save JSON report: {}", e);
+        // } else {
+        //     println!("💾 Detailed report saved to: {}", json_file);
+        // }
+
         if failure {
             println!(
-                "⚠️ Some files received low scores (below 5/10). Please review the detailed report."
+                "⚠️ Failure: one or more files scored below the evaluation threshold: {}",
+                &evaluation.description
             );
             std::process::exit(1);
         } else {

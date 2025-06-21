@@ -9,6 +9,7 @@ struct ChatMessage {
 
 #[derive(Serialize, Debug)]
 struct ChatCompletionRequest {
+    model: String, // This should be set to the deployment name
     messages: Vec<ChatMessage>,
     max_tokens: Option<i32>,
     temperature: Option<f32>,
@@ -38,10 +39,7 @@ pub async fn call_azure_openai(
     user_message: &str,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
-    let url = format!(
-        "{}/openai/deployments/{}/chat/completions?api-version=2024-08-01-preview",
-        endpoint, deployment_name
-    );
+    let url = format!("{}", endpoint);
 
     let messages = vec![
         ChatMessage {
@@ -55,6 +53,7 @@ pub async fn call_azure_openai(
     ];
 
     let request_body = ChatCompletionRequest {
+        model: deployment_name.to_string(),
         messages,
         max_tokens: Some(1000),
         temperature: Some(0.7),
