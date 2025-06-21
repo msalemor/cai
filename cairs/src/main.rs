@@ -180,6 +180,7 @@ async fn handle_evaluate(
     println!("\n🚀 Beginning AI evaluation...\n");
 
     // Process each source file with Azure OpenAI
+    let mut failure = false;
     for (index, file_path) in filtered_files.iter().enumerate() {
         println!(
             "📝 Evaluating ({}/{}) {}",
@@ -213,6 +214,9 @@ async fn handle_evaluate(
                             result,
                             timestamp: timestamp.clone(),
                         };
+                        if file_eval.result.score < 5 {
+                            failure = true;
+                        }
                         evaluations_results.push(file_eval);
                     }
                     Err(e) => {
@@ -276,6 +280,14 @@ async fn handle_evaluate(
             println!("❌ Failed to save JSON report: {}", e);
         } else {
             println!("💾 Detailed report saved to: {}", json_file);
+        }
+        if failure {
+            println!(
+                "⚠️ Some files received low scores (below 5/10). Please review the detailed report."
+            );
+            std::process::exit(1);
+        } else {
+            println!("✅ All evaluations completed successfully with satisfactory scores.");
         }
     } else {
         println!("\n❌ No successful evaluations completed.");
