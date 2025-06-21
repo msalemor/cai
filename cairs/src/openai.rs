@@ -34,7 +34,8 @@ struct ChatCompletionResponse {
 pub async fn call_azure_openai(
     endpoint: &str,
     api_key: &str,
-    deployment_name: &str,
+    model: &str,
+    call_type: &str,
     system_prompt: &str,
     user_message: &str,
 ) -> Result<String, Box<dyn std::error::Error>> {
@@ -53,15 +54,24 @@ pub async fn call_azure_openai(
     ];
 
     let request_body = ChatCompletionRequest {
-        model: deployment_name.to_string(),
+        model: model.to_string(),
         messages,
         max_tokens: Some(1000),
         temperature: Some(0.7),
     };
 
+    let header_key;
+
+    if call_type == "openai" {
+        // For Azure OpenAI, we need to specify the deployment name in the model field
+        header_key = "Bearer".to_string();
+    } else {
+        header_key = "api-key".to_string();
+    }
+
     let response = client
         .post(&url)
-        .header("api-key", api_key)
+        .header(&header_key, api_key)
         .header("Content-Type", "application/json")
         .json(&request_body)
         .send()

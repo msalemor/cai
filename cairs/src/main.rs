@@ -197,6 +197,11 @@ async fn handle_evaluate(
         "gpt-4".to_string()
     });
 
+    let call_type = std::env::var("CAI_TYPE").unwrap_or_else(|_| {
+        println!("⚠️  Warning: CAI_TYPE environment variable not set");
+        "gpt-4".to_string()
+    });
+
     let mut evaluations_results = Vec::new();
     let timestamp = chrono::Utc::now().to_rfc3339();
 
@@ -221,6 +226,7 @@ async fn handle_evaluate(
             match openai::call_azure_openai(
                 &azure_endpoint,
                 &azure_api_key,
+                &call_type,
                 &deployment_name,
                 &evaluation.system_prompt,
                 &user_message,
