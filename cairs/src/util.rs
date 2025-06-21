@@ -1,4 +1,4 @@
-pub fn list_source_files(target_folder: &str) -> Vec<String> {
+pub fn build_source_file_list(target_folder: &str) -> Vec<String> {
     let mut source_files = Vec::new();
     let exts = [
         "rs", "py", "js", "ts", "java", "cpp", "c", "cs", "go", "rb", "php", "swift", "kt", "scala",
@@ -23,4 +23,48 @@ pub fn list_source_files(target_folder: &str) -> Vec<String> {
         }
     }
     source_files
+}
+
+// Helper function to apply file filters
+pub fn apply_file_filters(
+    files: &[String],
+    skip_pattern: Option<&str>,
+    include_pattern: Option<&str>,
+) -> Vec<String> {
+    let mut filtered = files.to_vec();
+
+    // Apply skip pattern filter
+    if let Some(skip) = skip_pattern {
+        filtered.retain(|file| !matches_pattern(file, skip));
+    }
+
+    // Apply include pattern filter
+    if let Some(include) = include_pattern {
+        let patterns: Vec<&str> = include.split(',').map(|s| s.trim()).collect();
+        filtered.retain(|file| {
+            patterns
+                .iter()
+                .any(|pattern| matches_pattern(file, pattern))
+        });
+    }
+
+    filtered
+}
+
+// Simple pattern matching for file extensions and basic patterns
+fn matches_pattern(file: &str, pattern: &str) -> bool {
+    if pattern.starts_with("*.") {
+        let ext = &pattern[2..];
+        file.ends_with(&format!(".{}", ext))
+    } else if pattern.contains('*') {
+        // Basic wildcard support - convert to regex-like matching
+        let pattern_parts: Vec<&str> = pattern.split('*').collect();
+        if pattern_parts.len() == 2 {
+            file.starts_with(pattern_parts[0]) && file.ends_with(pattern_parts[1])
+        } else {
+            file.contains(pattern)
+        }
+    } else {
+        file.contains(pattern)
+    }
 }

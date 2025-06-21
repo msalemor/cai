@@ -3,7 +3,6 @@ pub mod openai;
 pub mod util;
 
 use clap::{Parser, Subcommand};
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Command line tool with ls and evaluate subcommands
@@ -44,6 +43,17 @@ enum Commands {
 
 #[tokio::main]
 async fn main() {
+    // Check that the environment variables are set
+    if std::env::var("AZURE_OPENAI_ENDPOINT").is_err()
+        || std::env::var("AZURE_OPENAI_API_KEY").is_err()
+        || std::env::var("AZURE_OPENAI_DEPLOYMENT_NAME").is_err()
+    {
+        eprintln!(
+            "Error: Required environment variables AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, and AZURE_OPENAI_DEPLOYMENT_NAME are not set."
+        );
+        std::process::exit(1);
+    }
+
     let args = Args::parse();
 
     // Load evaluations at startup
@@ -91,80 +101,6 @@ fn handle_ls(evaluations: &HashMap<String, evaluations::Evaluation>) {
     }
 }
 
-// Helper function to apply file filters
-fn apply_file_filters(
-    files: &[String],
-    skip_pattern: Option<&str>,
-    include_pattern: Option<&str>,
-) -> Vec<String> {
-    let mut filtered = files.to_vec();
-
-    // Apply skip pattern filter
-    if let Some(skip) = skip_pattern {
-        filtered.retain(|file| !matches_pattern(file, skip));
-    }
-
-    // Apply include pattern filter
-    if let Some(include) = include_pattern {
-        let patterns: Vec<&str> = include.split(',').map(|s| s.trim()).collect();
-        filtered.retain(|file| {
-            patterns
-                .iter()
-                .any(|pattern| matches_pattern(file, pattern))
-        });
-    }
-
-    filtered
-}
-
-// Simple pattern matching for file extensions and basic patterns
-fn matches_pattern(file: &str, pattern: &str) -> bool {
-    if pattern.starts_with("*.") {
-        let ext = &pattern[2..];
-        file.ends_with(&format!(".{}", ext))
-    } else if pattern.contains('*') {
-        // Basic wildcard support - convert to regex-like matching
-        let pattern_parts: Vec<&str> = pattern.split('*').collect();
-        if pattern_parts.len() == 2 {
-            file.starts_with(pattern_parts[0]) && file.ends_with(pattern_parts[1])
-        } else {
-            file.contains(pattern)
-        }
-    } else {
-        file.contains(pattern)
-    }
-}
-
-// Evaluation result structures
-#[derive(Deserialize, Serialize, Debug)]
-struct EvaluationResult {
-    score: i32,
-    explanation: String,
-}
-
-#[derive(Serialize, Debug)]
-struct FileEvaluation {
-    file_path: String,
-    evaluation_name: String,
-    result: EvaluationResult,
-    timestamp: String,
-}
-
-#[derive(Serialize, Debug)]
-struct EvaluationReport {
-    summary: EvaluationSummary,
-    results: Vec<FileEvaluation>,
-}
-
-#[derive(Serialize, Debug)]
-struct EvaluationSummary {
-    total_files: usize,
-    average_score: f64,
-    evaluation_name: String,
-    target_folder: String,
-    timestamp: String,
-}
-
 async fn handle_evaluate(
     target_folder: String,
     evaluation_name: String,
@@ -197,11 +133,11 @@ async fn handle_evaluate(
         println!("📋 Include files pattern: {}", include);
     }
 
-    let source_code_files = util::list_source_files(&target_folder);
+    let source_file_list = util::build_source_file_list(&target_folder);
 
     // Apply filters if specified
-    let filtered_files = apply_file_filters(
-        &source_code_files,
+    let filtered_files = util::apply_file_filters(
+        &source_file_list,
         skip_file.as_deref(),
         include_files.as_deref(),
     );
@@ -267,11 +203,11 @@ async fn handle_evaluate(
             )
             .await
             {
-                Ok(response) => match parse_evaluation_response(&response) {
+                Ok(response) => match evaluations::parse_evaluation_response(&response) {
                     Ok(result) => {
                         println!("✅ Score: {}/10 - {}", result.score, result.explanation);
 
-                        let file_eval = FileEvaluation {
+                        let file_eval = evaluations::FileEvaluation {
                             file_path: file_path.clone(),
                             evaluation_name: evaluation_name.clone(),
                             result,
@@ -306,7 +242,7 @@ async fn handle_evaluate(
             .sum::<f64>()
             / evaluations_results.len() as f64;
 
-        let summary = EvaluationSummary {
+        let summary = evaluations::EvaluationSummary {
             total_files: evaluations_results.len(),
             average_score,
             evaluation_name: evaluation_name.clone(),
@@ -314,7 +250,7 @@ async fn handle_evaluate(
             timestamp: timestamp.clone(),
         };
 
-        let report = EvaluationReport {
+        let report = evaluations::EvaluationReport {
             summary,
             results: evaluations_results,
         };
@@ -325,7 +261,7 @@ async fn handle_evaluate(
 
         // Save results if JUnit file specified
         if let Some(junit_file) = junit_file_name {
-            if let Err(e) = save_junit_results(&report, &junit_file) {
+            if let Err(e) = evaluations::save_junit_results(&report, &junit_file) {
                 println!("❌ Failed to save JUnit results: {}", e);
             } else {
                 println!("💾 Results saved to: {}", junit_file);
@@ -337,7 +273,7 @@ async fn handle_evaluate(
             "evaluation_report_{}.json",
             chrono::Utc::now().format("%Y%m%d_%H%M%S")
         );
-        if let Err(e) = save_json_results(&report, &json_file) {
+        if let Err(e) = evaluations::save_json_results(&report, &json_file) {
             println!("❌ Failed to save JSON report: {}", e);
         } else {
             println!("💾 Detailed report saved to: {}", json_file);
@@ -345,76 +281,4 @@ async fn handle_evaluate(
     } else {
         println!("\n❌ No successful evaluations completed.");
     }
-}
-
-// Parse Azure OpenAI response to extract evaluation result
-fn parse_evaluation_response(response: &str) -> Result<EvaluationResult, String> {
-    // Try to find JSON in the response
-    let json_start = response.find('{');
-    let json_end = response.rfind('}');
-
-    if let (Some(start), Some(end)) = (json_start, json_end) {
-        let json_str = &response[start..=end];
-        match serde_json::from_str::<EvaluationResult>(json_str) {
-            Ok(result) => {
-                // Validate score is within expected range
-                if result.score >= 1 && result.score <= 10 {
-                    Ok(result)
-                } else {
-                    Err(format!(
-                        "Score {} is outside valid range 1-10",
-                        result.score
-                    ))
-                }
-            }
-            Err(e) => Err(format!("Failed to parse JSON: {}, JSON: {}", e, json_str)),
-        }
-    } else {
-        Err("No JSON found in response".to_string())
-    }
-}
-
-// Save results in JUnit XML format
-fn save_junit_results(
-    report: &EvaluationReport,
-    filename: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let mut xml = String::new();
-    xml.push_str("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-    xml.push_str(&format!(
-        "<testsuites name=\"Code Evaluation - {}\" tests=\"{}\" failures=\"0\" errors=\"0\" time=\"0\">\n",
-        report.summary.evaluation_name, report.summary.total_files
-    ));
-    xml.push_str(&format!(
-        "  <testsuite name=\"{}\" tests=\"{}\" failures=\"0\" errors=\"0\" time=\"0\">\n",
-        report.summary.evaluation_name, report.summary.total_files
-    ));
-
-    for result in &report.results {
-        xml.push_str(&format!(
-            "    <testcase classname=\"{}\" name=\"{}\" time=\"0\">\n",
-            result.evaluation_name, result.file_path
-        ));
-        xml.push_str(&format!(
-            "      <system-out>Score: {}/10\nExplanation: {}</system-out>\n",
-            result.result.score, result.result.explanation
-        ));
-        xml.push_str("    </testcase>\n");
-    }
-
-    xml.push_str("  </testsuite>\n");
-    xml.push_str("</testsuites>\n");
-
-    std::fs::write(filename, xml)?;
-    Ok(())
-}
-
-// Save results as JSON
-fn save_json_results(
-    report: &EvaluationReport,
-    filename: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let json = serde_json::to_string_pretty(report)?;
-    std::fs::write(filename, json)?;
-    Ok(())
 }
