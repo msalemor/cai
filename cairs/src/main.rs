@@ -259,13 +259,12 @@ async fn handle_evaluate(
         println!("   Total files evaluated: {}", report.summary.total_files);
         println!("   Average score: {:.1}/10", report.summary.average_score);
 
-        // Save results if JUnit file specified
-        if let Some(junit_file) = junit_file_name {
-            if let Err(e) = evaluations::save_junit_results(&report, &junit_file) {
-                println!("❌ Failed to save JUnit results: {}", e);
-            } else {
-                println!("💾 Results saved to: {}", junit_file);
-            }
+        // Save results to JUnit file (default to ./junit.xml if not specified)
+        let junit_file = junit_file_name.unwrap_or_else(|| "junit.xml".to_string());
+        if let Err(e) = evaluations::save_junit_results(&report, &junit_file) {
+            println!("❌ Failed to save JUnit results: {}", e);
+        } else {
+            println!("💾 Results saved to: {}", junit_file);
         }
 
         // Also save as JSON report
