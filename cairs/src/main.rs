@@ -21,9 +21,9 @@ enum Commands {
     Evaluate {
         /// Target folder path
         #[arg(
-            short = 't',
             long,
             default_value = ".",
+            short = 't',
             help = "Path to the target folder containing source files"
         )]
         target_folder: String,
@@ -56,8 +56,8 @@ enum Commands {
         /// JUnit file name for output
         #[arg(
             long,
-            short = 'j',
             default_value = "junit.xml",
+            short = 'j',
             help = "Name of the JUnit file to save results"
         )]
         junit_file_name: Option<String>,
@@ -67,12 +67,13 @@ enum Commands {
 #[tokio::main]
 async fn main() {
     // Check that the environment variables are set
-    if std::env::var("AZURE_OPENAI_ENDPOINT").is_err()
-        || std::env::var("AZURE_OPENAI_API_KEY").is_err()
-        || std::env::var("AZURE_OPENAI_DEPLOYMENT_NAME").is_err()
+    if std::env::var("CAI_ENDPOINT").is_err()
+        || std::env::var("CAI_KEY").is_err()
+        || std::env::var("CAI_MODEL").is_err()
+        || std::env::var("CAI_TYPE").is_err()
     {
         eprintln!(
-            "Error: Required environment variables AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, and AZURE_OPENAI_DEPLOYMENT_NAME are not set."
+            "Error: Required environment variables CAI_ENDPOINT, CAI_KEY, and CAI_TYPE are not set."
         );
         std::process::exit(1);
     }
