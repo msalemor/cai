@@ -13,9 +13,10 @@ Your CLI tool now includes Azure OpenAI integration to evaluate source code file
 Set these environment variables before running evaluations:
 
 ```bash
-export AZURE_OPENAI_ENDPOINT="https://your-resource.openai.azure.com"
-export AZURE_OPENAI_API_KEY="your-api-key-here"
-export AZURE_OPENAI_DEPLOYMENT_NAME="gpt-4"
+export CAI_ENDPOINT="https://your-resource.openai.azure.com"
+export CAI_KEY="your-api-key-here"
+export CAI_MODEL="gpt-4"
+export CAI_TYPE="azure"
 ```
 
 ## Usage Examples
@@ -32,11 +33,11 @@ export AZURE_OPENAI_DEPLOYMENT_NAME="gpt-4"
 
 # Evaluate with additional options
 ./target/release/cairs evaluate \
-  --target-folder src \
-  --evaluation-name no-pointers \
-  --skip-files "*.test.rs" \
-  --include-files "*.rs,*.py" \
-  --junit-file-name results.xml
+  -t src \
+  -n no-pointers \
+  -k "*.test.rs" \
+  -o "*.rs,*.py" \
+  -j results.xml
 ```
 
 ## How It Works
