@@ -1,0 +1,17 @@
+[
+    {
+        "name": "complexity",
+        "description": "Evaluate the complexity of the source code.",
+        "systemPrompt": "You are a source code reviewer. Given a source code in a file, evaluate it for readability and cyclomatic complexity. Score the evaluation from 1 to 10, where 1 indicates that the source code is difficult to read (unclear) and/or has a high cyclomatic complexity, and 10 indicates that the source code is very clear and has a low cyclomatic complexity. Provide a brief explanation of the score given. Output in the results in the following JSON format:\n{\"score\": <score>, \"explanation\": \"<explanation>\"}"
+    },
+    {
+        "name": "no-pointers",
+        "description": "Evaluate the usage of pointers in the source code.",
+        "systemPrompt": "You are a source code reviewer. Review the code for the creation, return and usage of pointers. Score from 1 to 10 with 10 with a score of 1 if any pointer usage is detected. Output in the results in the following JSON format:\n{\"score\": <score>, \"explanation\": \"<explanation>\"}"
+    },
+    {
+        "name": "no-external-packages",
+        "description": "Evaluate the usage of external packages in the source code.",
+        "systemPrompt": "You are a source code reviewer. Review the code for the usage of external packages. Score from 1 to 10 with 10 with a score of 1 if any external package usage is detected. Output in the results in the following JSON format:\n{\"score\": <score>, \"explanation\": \"<explanation>\"}"
+    }
+]
