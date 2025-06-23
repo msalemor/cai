@@ -19,7 +19,7 @@ jobs:
         run: |
           mkdir cai
           cd cai
-          wget https://github.com/msalemor/cai/releases/download/v0.1.0/cai-linux-amd64-v0.1.1.zip
+          wget https://github.com/msalemor/cai/releases/download/v0.1.1/cai-linux-amd64-v0.1.1.zip
           unzip cai-linux-amd64-v0.1.1.zip
           rm cai-linux-amd64-v0.1.1.zip
           ./cai eval -s .. -j ../junit.xml -k .py
