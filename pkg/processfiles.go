@@ -135,6 +135,7 @@ func Process(sourceFolder, evaluationName, skipList, overrideList, junitFileName
 	// If a failure occurred, print a message and exit with a error
 	if failure {
 		logrus.Warn("Failure: one or more files scored below the evaluation threshold: ", evaluationPrompt.Description)
+		fmt.Println("One or more files scored below the evaluation threshold: ", evaluationPrompt.Description)
 		os.Exit(1)
 	}
 }

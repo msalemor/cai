@@ -51,6 +51,7 @@ func init() {
 	// //rootCmd.MarkFlagRequired("source")
 	// rootCmd.MarkFlagRequired("evaluation")
 	// Main entry point
+	logrus.SetOutput(os.Stdout)
 	logrus.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp: true,
 	})
