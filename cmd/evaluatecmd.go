@@ -35,7 +35,7 @@ var (
 
 func init() {
 	// Define flags for source folder and evaluation name
-	evaluateCmd.Flags().StringVarP(&sourceFolder, "source", "s", ".", "Source folder containing the data to evaluate")
+	evaluateCmd.Flags().StringVarP(&sourceFolder, "source", "s", ".", "folder containing the source code files to evaluate")
 	evaluateCmd.Flags().StringVarP(&evaluationName, "evaluation", "e", "complexity", "Name of the evaluation to run")
 	evaluateCmd.Flags().StringVarP(&skipList, "skip", "k", "", "Skip files matching the provided pattern (e.g. [.go,.py])")
 	evaluateCmd.Flags().StringVarP(&overrideList, "override", "o", "", "Override files matching the provided pattern (e.g. [.go,.py])")

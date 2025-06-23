@@ -97,8 +97,12 @@ func Process(sourceFolder, evaluationName, skipList, overrideList, junitFileName
 		if err != nil {
 			panic(fmt.Sprintf("Failed to read file %s: %v\n", file, err))
 		}
-		evaluation := evaluate(file, evaluationPrompt.SystemPrompt, string(sourceCode))
-		evaluationResults = append(evaluationResults, *evaluation)
+
+		// Skip empty files
+		if len(sourceCode) != 0 {
+			evaluation := evaluate(file, evaluationPrompt.SystemPrompt, string(sourceCode))
+			evaluationResults = append(evaluationResults, *evaluation)
+		}
 	}
 
 	// Create JUNIT file
