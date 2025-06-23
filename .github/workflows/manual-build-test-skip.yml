@@ -3,9 +3,7 @@ name: Manual build and test skipping
 on:
   workflow_dispatch:
 
-
 jobs:
-
   build:
     name: Test
     runs-on: ubuntu-latest
@@ -15,24 +13,24 @@ jobs:
       CAI_MODEL: gpt-4o
       CAI_TYPE: azure
     steps:
-    - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v4.2.2
 
-    - name: Download and extract zip file
-      run: |
-        mkdir cai
-        cd cai
-        wget https://github.com/msalemor/cai/releases/download/v0.1.0/cai-linux-amd64-v0.1.0.zip
-        unzip cai-linux-amd64-v0.1.0.zip
-        rm cai-linux-amd64-v0.1.0.zip
-        ./cai eval -s .. -j ../junit.xml -k .py
-        
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '^1.24.0'
+      - name: Download and extract zip file
+        run: |
+          mkdir cai
+          cd cai
+          wget https://github.com/msalemor/cai/releases/download/v0.1.0/cai-linux-amd64-v0.1.1.zip
+          unzip cai-linux-amd64-v0.1.1.zip
+          rm cai-linux-amd64-v0.1.1.zip
+          ./cai eval -s .. -j ../junit.xml -k .py
 
-    - name: Build
-      run: go build -v ./...
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "^1.24.0"
 
-    - name: Test
-      run: go test -v ./...
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        run: go test -v ./...
